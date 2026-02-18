@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema de Radar Portable | Juan Mejía</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="top-bar">
+        <span class="top-subtitle">Física • Electricidad • Electrónica</span>
+        <span class="top-author">UMG Ingeniería en Sistemas | Curso: Electrónica Analógica | Autor: Juan Mejía</span>
+    </div>
+
+    <header class="hero-header">
+        <img src="banner.jpg" alt="Banner del Proyecto" class="hero-bg" onerror="this.src='img/banner.jpg'">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 id="typewriter"></h1>
+        </div>
+    </header>
+
+    <main>
+        <section class="box-panel reveal">
+            <h2 style="text-align: center">Proyecto Electrónica</h2>
+            <p>Este sistema de radar ultrasónico automatizado realiza un barrido mecánico de 180° para la detección de objetos en un rango acotado de 10 cm a 40 cm. Diseñado con un enfoque en la portabilidad y la eficiencia energética, el circuito está completamente alimentado por una fuente DC de 9V independiente.</p>
+            <p>Integra una interfaz hombre-máquina (HMI) local a través de una pantalla OLED para telemetría en tiempo real, un arreglo de LEDs operando como semáforo de estado, y un transductor piezoeléctrico programado para emitir alertas sonoras rítmicas al detectar movimiento continuo.</p>
+            <p><strong>Impacto Educativo:</strong> Además de funcionar como un sistema de alarma táctico, el proyecto es una demostración integral de mecatrónica. Todos los datos recopilados por el sensor son empaquetados y transmitidos en tiempo real hacia una computadora, donde un software desarrollado en Processing renderiza gráficamente el entorno y exporta los eventos a una base de datos CSV.</p>
+        </section>
+
+        <section class="box-panel reveal">
+            <h2>Principios Físicos y Electrónicos</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Ecolocalización (HC-SR04)</h3>
+                    <p>El sensor emite un tren de pulsos ultrasónicos a 40 kHz. La distancia se calcula midiendo el ancho del pulso de retorno en el pin Echo, basándose en la velocidad del sonido.</p>
+                    <div class="formula">D = (Tiempo µs × 0.0343) / 2</div>
+                </div>
+                <div class="info-card">
+                    <h3>Procesamiento Digital (DSP)</h3>
+                    <p>Para mitigar el ruido acústico y ecos fantasma, el código implementa un <strong>Filtro de Mediana</strong>. Toma 3 muestras consecutivas, las ordena y selecciona el valor central exacto.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Comunicación Serial (UART)</h3>
+                    <p>El microcontrolador transmite la telemetría a la PC mediante <strong>UART asíncrono</strong>. Los datos viajan bit a bit a una velocidad de 115200 baudios para ser leídos por Processing.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Electroluminiscencia (LED)</h3>
+                    <p>El semáforo emite luz cuando la corriente fluye a través de la unión p-n de su semiconductor. La recombinación de electrones libera energía en forma de fotones de colores.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Regulación LDO de Voltaje</h3>
+                    <p>El regulador lineal de la placa Arduino convierte de forma segura los 9V inestables de la batería portátil en una línea estable de 5V, disipando la diferencia en forma de calor.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Cinemática de Escaneo</h3>
+                    <p>El barrido de 15° a 165° se logra enviando pulsos eléctricos modulados al Servomotor SG90. El potenciómetro interno lee la posición y ajusta los engranajes mecánicamente.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="components-section reveal">
+            <h2 class="center-title">Arquitectura del Hardware</h2>
+            
+            <div class="store-notice" style="text-align: center">
+                <strong>¿Dónde conseguir las piezas?</strong> 
+                Todos los componentes pueden ser adquiridos en tiendas de electrónica locales como <br>
+               <a href="https://laelectronica.com.gt/" target="_blank"><span class="highlight-store">Electrónica Tetsa</span></a> 
+                <a href="https://tienda.tettsa.gt/" target="_blank"><span class="highlight-store">La Electrónica</span></a>.
+            </div>
+
+            <div class="grid-container">
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="UNO-R3.jpg" alt="Arduino UNO" onerror="this.src='img/UNO-R3.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Arduino UNO R3</h3>
+                        <p>Microcontrolador ATmega328P. Gestiona interrupciones, lógica de estados e I/O digitales.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="HC-SR04.jpg" alt="Sensor HC-SR04" onerror="this.src='img/HC-SR04.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Sensor HC-SR04</h3>
+                        <p>Transductor acústico emisor y receptor de ondas de alta frecuencia para medir la distancia.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="SG901.jpg" alt="Servo SG90" onerror="this.src='img/SG901.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Servomotor SG90</h3>
+                        <p>Actuador electromecánico. Proveé el movimiento de 180 grados para el escaneo radial.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="oled0961.jpg" alt="Pantalla OLED" onerror="this.src='img/oled0961.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Pantalla OLED 0.96"</h3>
+                        <p>Display matriz SSD1306. Despliega telemetría local de distancias, ángulos y métricas.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="Semaforo_led.jpg" alt="Semáforo LED" onerror="this.src='img/Semaforo_led.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Módulo Semáforo LED</h3>
+                        <p>Reflejan visualmente la cantidad de objetos y la presencia estricta de intrusos en movimiento.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="Modulo-Buzzer.jpg" alt="Buzzer Pasivo" onerror="this.src='img/Modulo-Buzzer.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Zumbador Pasivo</h3>
+                        <p>Actuador acústico programado para la generación ininterrumpida de alarmas dinámicas.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="protoboard.jpeg" alt="Mini Protoboard" onerror="this.src='img/protoboard.jpeg'">
+
+                    </div>
+                    <div class="card-content">
+                        <h3>Protoboard</h3>
+                        <p>Placa electrónica que usaremos para el prototipado de circuitos y conexiones.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="Jumper-MxF.jpg" alt="Cables Jumpers" onerror="this.src='img/Jumper-MxF.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Cables Jumpers</h3>
+                        <p>Dispositivo que puede conectarse o desconectarse para cambiar los ajustes o configuración.</p>
+                    </div>
+                </div>
+                <div class="card reveal">
+                    <div class="img-container">
+                        <img src="bateria9v.jpg" alt="Batería 9V" onerror="this.src='img/bateria9v.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>Batería 9V</h3>
+                        <p>Fuente de energía portátil, esencial para proyectos autónomos sin depender de una PC.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="box-panel gallery-section reveal">
+            <h2 class="center-title">Galería del Proyecto Terminado</h2>
+            <div class="carousel-container">
+                <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+                
+                <div class="carousel-track-wrapper">
+                    <div class="carousel-track" id="carouselTrack">
+                        <div class="carousel-slide"><img src="a.jpg" alt="Proyecto Terminado" onerror="this.src='img/a.jpg'"></div>
+                        <div class="carousel-slide"><img src="b.jpg" alt="Proyecto Terminado" onerror="this.src='img/b.jpg'"></div>
+                        <div class="carousel-slide"><img src="c.jpg" alt="Proyecto Terminado" onerror="this.src='img/c.jpg'"></div> 
+                        <div class="carousel-slide"><img src="d.jpg" alt="Proyecto Terminado" onerror="this.src='img/d.jpg'"></div> 
+                        <div class="carousel-slide"><img src="e.jpg" alt="Proyecto Terminado" onerror="this.src='img/e.jpg'"></div>
+                        <div class="carousel-slide"><img src="f.jpg" alt="Proyecto Terminado" onerror="this.src='img/f.jpg'"></div> 
+                        <div class="carousel-slide"><img src="g.jpg" alt="Proyecto Terminado" onerror="this.src='img/g.jpg'"></div> 
+                        <div class="carousel-slide"><img src="h.jpg" alt="Proyecto Terminado" onerror="this.src='img/h.jpg'"></div> 
+                        <div class="carousel-slide"><img src="i.jpg" alt="Proyecto Terminado" onerror="this.src='img/i.jpg'"></div>
+                        <div class="carousel-slide"><img src="j.jpg" alt="Proyecto Terminado" onerror="this.src='img/j.jpg'"></div>
+                    </div>
+                </div>
+
+                <button class="carousel-btn next" onclick="moveSlide(1)">&#10095;</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Juan Mejía. Sistema de Radar Portable.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

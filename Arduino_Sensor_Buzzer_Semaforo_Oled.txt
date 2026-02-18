@@ -1,0 +1,258 @@
+// Proyecto: Radar Portable (Filtro Antirruido + OLED + Semaforo + Intro Autor 6s)
+#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// --- Configuracion Pantalla OLED ---
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// --- Pines de Hardware ---
+const uint8_t RED_PIN = 2;    
+const uint8_t YELLOW_PIN = 3; 
+const uint8_t GREEN_PIN = 4;
+const uint8_t TRIG_PIN = 10;
+const uint8_t ECHO_PIN = 11;
+const uint8_t SERVO_PIN = 12;
+const uint8_t BUZZER_PIN = 9;
+
+// --- Parametros de Deteccion ---
+const int ANG_MIN = 15;
+const int ANG_MAX = 165;
+const int ANG_STEP = 2;
+const int MAX_VALID_CM = 400;          
+const int BUZZER_ACTIVE_RANGE_CM = 40; 
+const int MOVEMENT_THRESHOLD_CM = 5;
+
+// --- Frecuencias Star Wars ---
+#define NOTE_FS4 370 // Fa sostenido
+#define NOTE_G4  392 // Sol
+#define NOTE_DS4 311 // Mi bemol (Re#)
+#define NOTE_AS4 466 // Si bemol (La#)
+#define NOTE_D5  587 // Re agudo
+#define NOTE_DS5 622 // Mi bemol agudo
+#define NOTE_REST 0
+
+// --- Configuracion del Zumbador ---
+const int STATIC_TONE_FREQ = 600;
+const int STATIC_TONE_DURATION = 100;
+
+// Melodia Dinamica (Alarma de movimiento: Parte alta/aguda)
+const int dynamicNotes[] = {
+  NOTE_D5, NOTE_D5, NOTE_D5, NOTE_DS5, NOTE_AS4,
+  NOTE_FS4, NOTE_DS4, NOTE_AS4, NOTE_G4, NOTE_REST
+};
+const int dynamicDurs[] = {
+  350, 350, 350, 250, 100,
+  350, 250, 100, 700, 200
+};
+const int DYNAMIC_LEN = 10;
+
+// --- Variables de Estado ---
+Servo myServo;
+static int angle = ANG_MIN;
+static int dir = 1;
+
+int lastValidDistance = -1;
+int objectCount = 0;
+bool wasObjectDetected = false;
+
+unsigned long buzzerLastActionTime = 0;
+int currentMelodyIndex = 0;
+bool staticBeepQueued = false;
+bool isMovingMelodyActive = false;
+uint8_t refreshOLED = 0;
+
+// --- 1. Lectura Unica ---
+int readDistanceOnce() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  
+  long dur = pulseIn(ECHO_PIN, HIGH, 30000UL);
+  if (dur == 0) return -1;
+  float cm = (dur * 0.0343f) / 2.0f;
+  
+  // Ignorar ruido: Menos de 2cm suele ser rebote en la base
+  if (cm <= 2.0f || cm > MAX_VALID_CM) return -1;
+  return (int)round(cm);
+}
+
+// --- 2. Filtro Antirruido (Mediana de 3 lecturas) ---
+int readDistanceFiltered(uint8_t samples) {
+  int vals[5];
+  uint8_t n = 0;
+  for (uint8_t i = 0; i < samples; i++) {
+    int d = readDistanceOnce();
+    if (d >= 0) vals[n++] = d;
+    delay(2); 
+  }
+  if (n == 0) return -1;
+  
+  for (uint8_t i = 0; i < n - 1; i++) {
+    for (uint8_t j = i + 1; j < n; j++) {
+      if (vals[j] < vals[i]) {
+        int tmp = vals[i];
+        vals[i] = vals[j];
+        vals[j] = tmp;
+      }
+    }
+  }
+  return vals[n / 2];
+}
+
+void setup() {
+  Wire.begin();
+  Wire.setClock(400000); 
+  
+  pinMode(RED_PIN, OUTPUT); pinMode(YELLOW_PIN, OUTPUT); pinMode(GREEN_PIN, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT); pinMode(ECHO_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+  
+  Serial.begin(115200);
+  myServo.attach(SERVO_PIN);
+  myServo.write(ANG_MIN);
+
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) for(;;);
+  
+  // --- PANTALLA DE INICIO (Con tu nombre) ---
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.drawRect(0, 0, 128, 64, SSD1306_WHITE); // Marco exterior
+  
+  // Textos perfectamente centrados
+  display.setCursor(16, 12);
+  display.print("SISTEMA DE RADAR");
+  
+  display.setCursor(28, 30);
+  display.print("INICIANDO...");
+  
+  display.setCursor(13, 48);
+  display.print("Autor: Juan Mejia");
+  
+  display.display();
+
+  // --- INTRO MUSICAL (Exactamente 5 Segundos de la parte Dinámica) ---
+  const int introNotes[] = {NOTE_D5, NOTE_D5, NOTE_D5, NOTE_DS5, NOTE_AS4, NOTE_FS4, NOTE_DS4, NOTE_AS4, NOTE_G4};
+  const int introDurs[] = {590, 590, 590, 420, 170, 590, 420, 170, 1190};
+  
+  for (int i = 0; i < 9; i++) {
+    tone(BUZZER_PIN, introNotes[i]);
+    delay(introDurs[i]);
+    noTone(BUZZER_PIN);
+    delay(30); // Breve silencio entre notas para dar ritmo
+  }
+  
+  // --- SILENCIO DE SUSPENSO (Exactamente 1 Segundo) ---
+  // Tu nombre seguira en pantalla durante este segundo de total silencio
+  delay(1000);
+}
+
+void loop() {
+  myServo.write(angle);
+  delay(15);
+  
+  int currentDistance = readDistanceFiltered(3);
+  
+  bool isCurrentlyDetectedInBuzzerRange = (currentDistance != -1 && currentDistance <= BUZZER_ACTIVE_RANGE_CM);
+  bool isCurrentlyMoving = false;
+
+  if (isCurrentlyDetectedInBuzzerRange) {
+    if (!wasObjectDetected) {
+      objectCount++;
+      staticBeepQueued = true;
+      isMovingMelodyActive = false;
+      noTone(BUZZER_PIN);
+    } else {
+      if (lastValidDistance != -1 && abs(currentDistance - lastValidDistance) > MOVEMENT_THRESHOLD_CM) {
+        isCurrentlyMoving = true;
+        staticBeepQueued = false;
+      }
+    }
+    lastValidDistance = currentDistance;
+  } else {
+    lastValidDistance = -1;
+    staticBeepQueued = false;
+    isMovingMelodyActive = false;
+    noTone(BUZZER_PIN);
+  }
+
+  wasObjectDetected = isCurrentlyDetectedInBuzzerRange;
+
+  // Semaforo
+  digitalWrite(RED_PIN, isCurrentlyMoving ? HIGH : LOW);
+  digitalWrite(YELLOW_PIN, (!isCurrentlyMoving && objectCount > 1) ? HIGH : LOW);
+  digitalWrite(GREEN_PIN, (!isCurrentlyMoving && objectCount == 1) ? HIGH : LOW);
+
+  // Buzzer (Alarma de intruso dinámica)
+  if (isCurrentlyMoving) {
+    if (!isMovingMelodyActive) { 
+      isMovingMelodyActive = true;
+      currentMelodyIndex = 0;
+      buzzerLastActionTime = millis();
+      tone(BUZZER_PIN, dynamicNotes[currentMelodyIndex]);
+    } else { 
+      if (millis() - buzzerLastActionTime >= dynamicDurs[currentMelodyIndex]) {
+        currentMelodyIndex++;
+        if (currentMelodyIndex >= DYNAMIC_LEN) currentMelodyIndex = 0;
+        buzzerLastActionTime = millis();
+        
+        if (dynamicNotes[currentMelodyIndex] == NOTE_REST) noTone(BUZZER_PIN);
+        else tone(BUZZER_PIN, dynamicNotes[currentMelodyIndex]);
+      }
+    }
+  } else if (staticBeepQueued) {
+    tone(BUZZER_PIN, STATIC_TONE_FREQ, STATIC_TONE_DURATION);
+    staticBeepQueued = false;
+    isMovingMelodyActive = false;
+  } else if (!isMovingMelodyActive) { 
+    noTone(BUZZER_PIN);
+  }
+
+  // OLED
+  if (refreshOLED++ >= 2) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0,0);
+    display.print("RANGO ALERTA: 40cm");
+    display.drawFastHLine(0, 10, 128, SSD1306_WHITE);
+    
+    display.setCursor(0, 18);
+    display.print("Angulo: "); display.print(angle); display.print(" deg");
+    
+    display.setCursor(0, 30);
+    display.print("Dist: ");
+    
+    if(!isCurrentlyDetectedInBuzzerRange) { 
+      display.print("---"); 
+    } else { 
+      display.print(currentDistance);
+      display.print(" cm"); 
+      int barWidth = map(currentDistance, 0, BUZZER_ACTIVE_RANGE_CM, 10, 128); 
+      display.fillRect(0, 40, barWidth, 3, SSD1306_WHITE);
+    }
+    
+    display.setTextSize(2);
+    display.setCursor(0, 48);
+    display.print("OBJS: "); display.print(objectCount);
+    display.display();
+    refreshOLED = 0;
+  }
+
+  // Serial para Processing
+  Serial.print(angle); Serial.print(','); Serial.print(currentDistance); Serial.print('.');
+
+  // Barrido
+  angle += dir * ANG_STEP;
+  if (angle >= ANG_MAX || angle <= ANG_MIN) { 
+    dir *= -1; 
+    objectCount = 0; 
+  }
+}
