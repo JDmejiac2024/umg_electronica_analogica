@@ -27,7 +27,7 @@
             <h2 style="text-align: center">Proyecto Electrónica</h2>
             <p>Este sistema de radar ultrasónico automatizado realiza un barrido mecánico de 180° para la detección de objetos en un rango acotado de 10 cm a 40 cm. Diseñado con un enfoque en la portabilidad y la eficiencia energética, el circuito está completamente alimentado por una fuente DC de 9V independiente.</p>
             <p>Integra una interfaz hombre-máquina (HMI) local a través de una pantalla OLED para telemetría en tiempo real, un arreglo de LEDs operando como semáforo de estado, y un transductor piezoeléctrico programado para emitir alertas sonoras rítmicas al detectar movimiento continuo.</p>
-            <p><strong>Impacto Educativo:</strong> Además de funcionar como un sistema de alarma táctico, el proyecto es una demostración integral de mecatrónica. Todos los datos recopilados por el sensor son empaquetados y transmitidos en tiempo real hacia una computadora, donde un software desarrollado en Processing renderiza gráficamente el entorno y exporta los eventos a una base de datos CSV.</p>
+            <!--<p><strong>Impacto Educativo:</strong> Además de funcionar como un sistema de alarma táctico, el proyecto es una demostración integral de mecatrónica. Todos los datos recopilados por el sensor son empaquetados y transmitidos en tiempo real hacia una computadora, donde un software desarrollado en Processing renderiza gráficamente el entorno y exporta los eventos a una base de datos CSV.</p>-->
         </section>
 
         <section class="box-panel reveal">
@@ -38,14 +38,14 @@
                     <p>El sensor emite un tren de pulsos ultrasónicos a 40 kHz. La distancia se calcula midiendo el ancho del pulso de retorno en el pin Echo, basándose en la velocidad del sonido.</p>
                     <div class="formula">D = (Tiempo µs × 0.0343) / 2</div>
                 </div>
-                <div class="info-card">
+                <!--<div class="info-card">
                     <h3>Procesamiento Digital (DSP)</h3>
                     <p>Para mitigar el ruido acústico y ecos fantasma, el código implementa un <strong>Filtro de Mediana</strong>. Toma 3 muestras consecutivas, las ordena y selecciona el valor central exacto.</p>
                 </div>
                 <div class="info-card">
                     <h3>Comunicación Serial (UART)</h3>
                     <p>El microcontrolador transmite la telemetría a la PC mediante <strong>UART asíncrono</strong>. Los datos viajan bit a bit a una velocidad de 115200 baudios para ser leídos por Processing.</p>
-                </div>
+                </div>-->
                 <div class="info-card">
                     <h3>Electroluminiscencia (LED)</h3>
                     <p>El semáforo emite luz cuando la corriente fluye a través de la unión p-n de su semiconductor. La recombinación de electrones libera energía en forma de fotones de colores.</p>
@@ -69,6 +69,10 @@
                 Todos los componentes pueden ser adquiridos en tiendas de electrónica locales como <br>
                <a href="https://laelectronica.com.gt/" target="_blank"><span class="highlight-store">La Electrónica</span></a> 
                 <a href="https://tienda.tettsa.gt/" target="_blank"><span class="highlight-store">Electrónica Tetsa</span></a>.
+				<p></p>
+				<strong>Parte téorica del proyecto.</strong> 
+                Descarga el pdf con la información importante de los componentes electrónicos utilizados en este proyecto de Arduino.<br>
+               <a href="img/teoria.pdf" target="_blank"><span class="highlight-store">PDF</span></a> 
             </div>
 
             <div class="grid-container">
@@ -154,16 +158,26 @@
                         <p>Fuente de energía portátil, esencial para proyectos autónomos sin depender de una PC.</p>
                     </div>
                 </div>
+				 <div class="card reveal">
+                    <div class="img-container">
+                        <img src="porta_bateria.jpg" alt="Batería 9V" onerror="this.src='img/porta_bateria.jpg'">
+                    </div>
+					<div class="card-content">
+                        <h3>Porta batería 9V </h3>
+                        <p>con switch on-off</p>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section class="box-panel gallery-section reveal">
-            <h2 class="center-title">Galería del Proyecto Terminado</h2>
+            <h2 class="center-title">Galería del Proyecto:</h2>
             <div class="carousel-container">
                 <button class="carousel-btn prev" onclick="moveSlide(-1)">&#10094;</button>
                 
                 <div class="carousel-track-wrapper">
                     <div class="carousel-track" id="carouselTrack">
+						<div class="carousel-slide"><img src="diagrama.jpg" alt="Proyecto Terminado" onerror="this.src='img/diagrama.jpg'"></div>
                         <div class="carousel-slide"><img src="a.jpg" alt="Proyecto Terminado" onerror="this.src='img/a.jpg'"></div>
                         <div class="carousel-slide"><img src="b.jpg" alt="Proyecto Terminado" onerror="this.src='img/b.jpg'"></div>
                         <div class="carousel-slide"><img src="c.jpg" alt="Proyecto Terminado" onerror="this.src='img/c.jpg'"></div> 
@@ -174,6 +188,9 @@
                         <div class="carousel-slide"><img src="h.jpg" alt="Proyecto Terminado" onerror="this.src='img/h.jpg'"></div> 
                         <div class="carousel-slide"><img src="i.jpg" alt="Proyecto Terminado" onerror="this.src='img/i.jpg'"></div>
                         <div class="carousel-slide"><img src="j.jpg" alt="Proyecto Terminado" onerror="this.src='img/j.jpg'"></div>
+						<div class="carousel-slide"><img src="k.jpg" alt="Proyecto Terminado" onerror="this.src='img/k.jpg'"></div>
+						<div class="carousel-slide"><img src="l.jpg" alt="Proyecto Terminado" onerror="this.src='img/l.jpg'"></div>
+						<div class="carousel-slide"><img src="m.jpg" alt="Proyecto Terminado" onerror="this.src='img/m.jpg'"></div>
                     </div>
                 </div>
 
@@ -184,6 +201,7 @@
     </main>
 
     <footer>
+		<center><img src="img/logo.png" width="100" height="100" alt="logo umg"></center>
         <p>&copy; 2026 Juan Mejía. Sistema de Radar Portable.</p>
     </footer>
 
