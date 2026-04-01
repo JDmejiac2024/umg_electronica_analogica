@@ -304,7 +304,11 @@ a { text-decoration: none; }
 }
 
 .carousel-slide img {
-    width: 100%;
+	margin-left: 5%;
+	margin-right: 5%;
+	text-align: center;
+	align-content: center;
+    width: 90%;
     height: 450px;
     object-fit: cover;
     display: block;
